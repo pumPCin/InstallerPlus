@@ -41,7 +41,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Gradle tasks
-        run: .gradlew tasks
+        run: ./gradlew tasks
 
       - name: Build with Gradle
         run: ./gradlew release
