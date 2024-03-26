@@ -41,14 +41,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
-
-      - name: Get short SHA
-        run: echo "SHA7=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
+        run: ./gradlew build release
 
       - name: Upload Packages
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: InstallerPlus-debug-${{ env.SHA7 }}
-          path: ${{ github.workspace }}/app/build/outputs/apk/debug
+          name: InstallerPlus-release
+          path: ${{ github.workspace }}/app/build/outputs/apk/release
