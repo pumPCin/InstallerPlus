@@ -40,15 +40,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Gradle tasks
-        run: ./gradlew tasks
-
       - name: Build with Gradle
-        run: ./gradlew bundle
+        run: ./gradlew bundleRelease
 
       - name: Upload Packages
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: InstallerPlus-release
-          path: ${{ github.workspace }}/app/build/outputs/apk/release
+          path: ${{ github.workspace }}/app/build/outputs/bundle/release
