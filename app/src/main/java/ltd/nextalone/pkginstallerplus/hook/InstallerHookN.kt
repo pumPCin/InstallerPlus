@@ -9,7 +9,6 @@ import android.os.UserManager
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -29,8 +28,6 @@ object InstallerHookN {
             val spacer: View? = ctx.findViewById(spacerId)
             if (spacer != null) {
                 replaceSpacerWithInfoView(spacer, ctx)
-            } else {
-                Log.e(TAG, "spacer view not found")
             }
         }
     }
