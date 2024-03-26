@@ -41,11 +41,11 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew bundleRelease
+        run: ./gradlew build
 
       - name: Upload Packages
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: InstallerPlus-release
-          path: ${{ github.workspace }}/app/build/outputs/bundle/release
+          path: ${{ github.workspace }}/app/build/outputs/apk/release
