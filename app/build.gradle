@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
     buildToolsVersion '34.0.0'
 
     defaultConfig {
         applicationId "ltd.nextalone.pkginstallerplus"
         minSdkVersion 23
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode(getTimeStamp.call() as int)
-        versionName "1.3"
+        versionName "1.4"
     }
 
     buildTypes {
