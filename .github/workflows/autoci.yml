@@ -9,9 +9,9 @@ name: autoCI
 
 on:
   push:
-    branches: [ test ]
+    branches: [ main ]
   pull_request:
-    branches: [ test ]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       Compile:
