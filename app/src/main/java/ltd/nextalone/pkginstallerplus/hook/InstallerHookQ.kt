@@ -62,8 +62,8 @@ object InstallerHookQ {
         if (oldPkgInfo == null) {
             val install: View? = activity.findHostView("install_confirm_question") ?:
             activity.get("mDialog")?.findHostView("install_confirm_question") // QPR2+
-            val newVersionStr = (newPkgInfo.versionName ?: "N/A") + "(" + newPkgInfo.longVersionCode + ")"
-            val newSdkStr = newPkgInfo.applicationInfo.targetSdkVersion.toString()
+            val newVersionStr = (newPkgInfo.versionName ?: "???") + "(" + newPkgInfo.longVersionCode + ")"
+            val newSdkStr = newPkgInfo.applicationInfo!!.targetSdkVersion.toString()
 
             sb.append(activity.getString(R.string.IPP_info_user) + ": ")
                 .append(usrManager.userName)
@@ -86,10 +86,10 @@ object InstallerHookQ {
         } else {
             val update: View? = activity.findHostView("install_confirm_question_update") ?:
             activity.get("mDialog")?.findHostView("install_confirm_question_update") // QPR2+
-            val oldVersionStr = """${oldPkgInfo.versionName ?: "N/A"}(${oldPkgInfo.longVersionCode})"""
-            val newVersionStr = """${newPkgInfo.versionName ?: "N/A"}(${newPkgInfo.longVersionCode})"""
-            val oldSdkStr = oldPkgInfo.applicationInfo.targetSdkVersion.toString()
-            val newSdkStr = newPkgInfo.applicationInfo.targetSdkVersion.toString()
+            val oldVersionStr = """${oldPkgInfo.versionName ?: "???"}(${oldPkgInfo.longVersionCode})"""
+            val newVersionStr = """${newPkgInfo.versionName ?: "???"}(${newPkgInfo.longVersionCode})"""
+            val oldSdkStr = oldPkgInfo.applicationInfo!!.targetSdkVersion.toString()
+            val newSdkStr = newPkgInfo.applicationInfo!!.targetSdkVersion.toString()
 
             sb.append(activity.getString(R.string.IPP_info_user) + ": ")
                 .append(usrManager.userName)
@@ -133,8 +133,8 @@ object InstallerHookQ {
 
         val sb = SpannableStringBuilder()
         if (oldPkgInfo != null) {
-            val oldVersionStr = (oldPkgInfo.versionName ?: "N/A") + "(" + oldPkgInfo.longVersionCode + ")"
-            val oldSdkStr = oldPkgInfo.applicationInfo.targetSdkVersion.toString()
+            val oldVersionStr = (oldPkgInfo.versionName ?: "???") + "(" + oldPkgInfo.longVersionCode + ")"
+            val oldSdkStr = oldPkgInfo.applicationInfo!!.targetSdkVersion.toString()
 
             sb.append(activity.getString(R.string.IPP_info_package) + ": ")
                 .append(packageName)
