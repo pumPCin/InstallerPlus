@@ -11,7 +11,7 @@ android {
         applicationId "ltd.nextalone.pkginstallerplus"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 14
+        versionCode(getTimeStamp.call() as int)
         versionName "1.4"
     }
 
