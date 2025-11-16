@@ -12,6 +12,7 @@ import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 
@@ -19,8 +20,8 @@ import ltd.nextalone.pkginstallerplus.HookEntry.injectModuleResources
 import ltd.nextalone.pkginstallerplus.R
 import ltd.nextalone.pkginstallerplus.utils.*
 
-@RequiresApi(29)
-object InstallerHookQ {
+@RequiresApi(36)
+object InstallerHookB {
     fun initOnce() {
         "com.android.packageinstaller.PackageInstallerActivity".clazz?.method("startInstallConfirm")?.hookAfter {
             val ctx: Activity = it.thisObject as Activity
@@ -60,8 +61,6 @@ object InstallerHookQ {
 
         val sb = SpannableStringBuilder()
         if (oldPkgInfo == null) {
-            val install: View? = activity.findHostView("install_confirm_question") ?:
-            activity.get("mDialog")?.findHostView("install_confirm_question") // QPR2+
             val newVersionStr = (newPkgInfo.versionName ?: "???") + "(" + newPkgInfo.longVersionCode + ")"
             val newSdkStr = newPkgInfo.applicationInfo!!.targetSdkVersion.toString()
 
@@ -77,15 +76,27 @@ object InstallerHookQ {
                 .append(activity.getString(R.string.IPP_info_sdk) + ": ")
                 .append(newSdkStr)
 
-            if (install != null) {
-                layout.setPadding(0, install.height, 0, 0)
+            var targetView: View? = activity.findHostView<View>("install_confirm_question") ?:
+                                    activity.get("mDialog")?.findHostView<View>("install_confirm_question")
+
+            if (targetView == null) {
+                targetView = findFallbackContainer(activity)
+            }
+
+            if (targetView != null) {
+                val topPadding = if (activity.findHostView<View>("install_confirm_question") != null) targetView.height else 0
+                layout.setPadding(0, topPadding, 0, 0)
                 textView.text = sb
                 layout.addView(textView, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-                (install.parent as ViewGroup).addView(layout)
+                val parent = targetView.parent as? ViewGroup
+
+                if (parent != null) {
+                    parent.addView(layout)
+                } else if (targetView is ViewGroup) {
+                    targetView.addView(layout, 0)
+                }
             }
         } else {
-            val update: View? = activity.findHostView("install_confirm_question_update") ?:
-            activity.get("mDialog")?.findHostView("install_confirm_question_update") // QPR2+
             val oldVersionStr = """${oldPkgInfo.versionName ?: "???"}(${oldPkgInfo.longVersionCode})"""
             val newVersionStr = """${newPkgInfo.versionName ?: "???"}(${newPkgInfo.longVersionCode})"""
             val oldSdkStr = oldPkgInfo.applicationInfo!!.targetSdkVersion.toString()
@@ -108,13 +119,45 @@ object InstallerHookQ {
                 .append(" ➞ ")
                 .append(newSdkStr, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
-            if (update != null) {
-                layout.setPadding(0, update.height, 0, 0)
+            var targetView: View? = activity.findHostView<View>("install_confirm_question_update") ?:
+                                    activity.get("mDialog")?.findHostView<View>("install_confirm_question_update")
+
+            if (targetView == null) {
+                targetView = findFallbackContainer(activity)
+            }
+
+            if (targetView != null) {
+                val topPadding = if (activity.findHostView<View>("install_confirm_question_update") != null) targetView.height else 0
+                layout.setPadding(0, topPadding, 0, 0)
                 textView.text = sb
                 layout.addView(textView, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
-                (update.parent as ViewGroup).addView(layout)
+                val parent = targetView.parent as? ViewGroup
+
+                if (parent != null) {
+                    parent.addView(layout)
+                } else if (targetView is ViewGroup) {
+                    targetView.addView(layout, 0)
+                }
             }
         }
+    }
+
+    private fun findFallbackContainer(activity: Activity): ViewGroup? {
+        val root = activity.findViewById<ViewGroup>(android.R.id.content) ?: return null
+
+        fun findScroll(view: View): ViewGroup? {
+            if (view is ScrollView) {
+                return if (view.childCount > 0) view.getChildAt(0) as? ViewGroup else view
+            }
+            if (view is ViewGroup) {
+                for (i in 0 until view.childCount) {
+                    val res = findScroll(view.getChildAt(i))
+                    if (res != null) return res
+                }
+            }
+            return null
+        }
+        return findScroll(root)
     }
 
     private fun addUninstallDetails(activity: Activity, dialog: AlertDialog) {

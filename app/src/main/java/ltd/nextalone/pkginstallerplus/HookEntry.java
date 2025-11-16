@@ -15,11 +15,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 import ltd.nextalone.pkginstallerplus.hook.InstallerHookN;
 import ltd.nextalone.pkginstallerplus.hook.InstallerHookQ;
-
-import static ltd.nextalone.pkginstallerplus.utils.LogUtilsKt.logDebug;
-import static ltd.nextalone.pkginstallerplus.utils.LogUtilsKt.logDetail;
-import static ltd.nextalone.pkginstallerplus.utils.LogUtilsKt.logError;
-import static ltd.nextalone.pkginstallerplus.utils.LogUtilsKt.logThrowable;
+import ltd.nextalone.pkginstallerplus.hook.InstallerHookB;
 
 public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
@@ -31,30 +27,19 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
     private static long sResInjectEndTime = 0;
 
     private static void initializeHookInternal(LoadPackageParam lpparam) {
-        logDebug("initializeHookInternal start");
         try {
             lpClassLoader = lpparam.classLoader;
-            if (VERSION.SDK_INT >= VERSION_CODES.Q) {
-                //Android Q -- Android T
-                logDebug("initializeHook: Q");
+            if (VERSION.SDK_INT >= 36) {
+                InstallerHookB.INSTANCE.initOnce();
+            } else if (VERSION.SDK_INT >= VERSION_CODES.Q) {
                 InstallerHookQ.INSTANCE.initOnce();
             } else {
-                throw new Exception("UnsupportApiVersionError");
-            }
-        } catch (Exception e) {
-            try {
-                //Android Nougat
-                logDebug("initializeHook: N");
                 InstallerHookN.INSTANCE.initOnce();
-            } catch (Exception e1) {
-                e.addSuppressed(e1);
-                logThrowable("initializeHookInternal: ", e);
             }
-        }
+        } catch (Throwable e) {}
     }
 
     public static void injectModuleResources(Resources res) {
-        logDebug("injectModuleResources start");
         if (res == null) {
             return;
         }
@@ -80,13 +65,10 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
             addAssetPath.setAccessible(true);
             int cookie = (int) addAssetPath.invoke(assets, sModulePath);
             try {
-                logDetail("injectModuleResources", res.getString(R.string.IPP_res_inject_success));
                 if (sResInjectEndTime == 0) {
                     sResInjectEndTime = System.currentTimeMillis();
                 }
             } catch (Resources.NotFoundException e) {
-                logError("Fatal: injectModuleResources: test injection failure!");
-                logError("injectModuleResources: cookie=" + cookie + ", path=" + sModulePath + ", loader=" + myClassLoader);
                 long length = -1;
                 boolean read = false;
                 boolean exist = false;
@@ -98,18 +80,14 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
                     length = f.length();
                     read = f.canRead();
                 } catch (Throwable e2) {
-                    logError(String.valueOf(e2));
                 }
-                logError("sModulePath: exists = " + exist + ", isDirectory = " + isDir + ", canRead = " + read + ", fileLength = " + length);
             }
         } catch (Exception e) {
-            logError(String.valueOf(e));
         }
     }
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-        logDetail("handleLoadPackage", lpparam.packageName);
         if ("com.google.android.packageinstaller".equals(lpparam.packageName)
             || "com.android.packageinstaller".equals(lpparam.packageName)) {
             if (!sInitialized) {
