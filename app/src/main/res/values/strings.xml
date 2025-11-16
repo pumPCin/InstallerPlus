@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Installer++</string>
+    <string name="app_name">Installer++</string>
     <string name="IPP_info_version">Version</string>
+    <string name="IPP_info_version1">Installed</string>
+    <string name="IPP_info_version2">Update to</string>
     <string name="IPP_info_package">Package name</string>
     <string name="IPP_info_user">User</string>
     <string name="IPP_info_sdk">Target SDK</string>
