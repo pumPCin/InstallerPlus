@@ -12,7 +12,7 @@ android {
         minSdkVersion 23
         targetSdkVersion 36
         versionCode(getTimeStamp.call() as int)
-        versionName "1.4"
+        versionName "1.6"
     }
 
     buildTypes {
