@@ -15,6 +15,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 import ltd.nextalone.pkginstallerplus.hook.InstallerHookN;
 import ltd.nextalone.pkginstallerplus.hook.InstallerHookQ;
+import ltd.nextalone.pkginstallerplus.hook.InstallerHookB;
 
 public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
@@ -28,15 +29,19 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
     private static void initializeHookInternal(LoadPackageParam lpparam) {
         try {
             lpClassLoader = lpparam.classLoader;
-            if (VERSION.SDK_INT >= VERSION_CODES.Q) {
-                //Android Q -- Android T
+            // Android 15 (Vanilla Ice Cream) is SDK 35. Android 16 (Baklava) will be 36.
+            // Проверяем SDK >= 35, чтобы покрыть и 15, и 16 версии.
+            if (VERSION.SDK_INT >= 35) { 
+                 InstallerHookB.INSTANCE.initOnce();
+            } else if (VERSION.SDK_INT >= VERSION_CODES.Q) {
+                // Android 10 (Q) -- Android 14
                 InstallerHookQ.INSTANCE.initOnce();
             } else {
                 throw new Exception("UnsupportApiVersionError");
             }
         } catch (Exception e) {
             try {
-                //Android Nougat
+                // Fallback для старых версий (Android 7-9)
                 InstallerHookN.INSTANCE.initOnce();
             } catch (Exception e1) {
                 e.addSuppressed(e1);
@@ -58,7 +63,6 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
                 myClassLoader = HookEntry.class.getClassLoader();
             }
             if (sModulePath == null) {
-                // should not happen
                 throw new IllegalStateException("sModulePath is null");
             }
             if (sResInjectBeginTime == 0) {
@@ -93,8 +97,11 @@ public class HookEntry implements IXposedHookLoadPackage, IXposedHookZygoteInit 
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+        // Добавлен permissioncontroller, так как в Android 16 Google может перенести логику туда
         if ("com.google.android.packageinstaller".equals(lpparam.packageName)
-            || "com.android.packageinstaller".equals(lpparam.packageName)) {
+            || "com.android.packageinstaller".equals(lpparam.packageName)
+            || "com.google.android.permissioncontroller".equals(lpparam.packageName)) {
+            
             if (!sInitialized) {
                 sInitialized = true;
                 initializeHookInternal(lpparam);
