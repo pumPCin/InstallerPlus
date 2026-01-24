@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    compileSdk 33
-    buildToolsVersion '33.0.2'
+    compileSdk 36
+    buildToolsVersion '36.0.0'
 
     defaultConfig {
         applicationId "ltd.nextalone.pkginstallerplus"
         minSdkVersion 23
-        targetSdkVersion 33
+        targetSdkVersion 36
         versionCode(getTimeStamp.call() as int)
-        versionName "1.2" + (getGitHeadRefsSuffix.call() as String)
+        versionName "1.6"
     }
 
     buildTypes {
@@ -26,11 +26,11 @@ android {
         additionalParameters '--allow-reserved-package-id', '--package-id', '0x75'
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = '21'
     }
     buildFeatures {
         viewBinding true
