@@ -3,6 +3,7 @@ package ltd.nextalone.pkginstallerplus.hook
 import android.app.Activity
 import android.app.Dialog
 import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.os.Build
 import android.os.UserManager
@@ -19,7 +20,7 @@ import ltd.nextalone.pkginstallerplus.utils.*
 private const val TAG_INSTALL_DETAILS = "IPP_install_details"
 private const val TAG_UNINSTALL_DETAILS = "IPP_uninstall_details"
 
-object InstallerHookBaklava {
+object InstallerHookB {
     fun initOnce() {
         "$INSTALLER_V2_PKG.fragments.InstallationFragment".clazz?.method("updateUI")?.hookAfter {
             val fragment = it.thisObject
@@ -36,7 +37,6 @@ object InstallerHookBaklava {
 
                 liveData?.get("mData")?.javaClass?.simpleName == "InstallUserActionRequired"
             }.getOrElse { e ->
-                logThrowable(msg = "Baklava: stage detection failed", t = e)
                 false
             }
 
@@ -73,58 +73,51 @@ object InstallerHookBaklava {
         val repository = viewModel.get("repository") ?: return
         val newPkgInfo = repository.get("newPackageInfo") as? PackageInfo ?: return
         val usrManager = repository.get("userManager") as? UserManager ?: return
-        val oldPkgInfo = activity.packageManager.getPackageInfoOrNull(newPkgInfo.packageName)
+        
+        val oldPkgInfo = try {
+            activity.packageManager.getPackageInfoOrNull(newPkgInfo.packageName)
+        } catch (e: Exception) {
+            null
+        }
 
         val sb = SpannableStringBuilder()
-        sb
-            .append(activity.getString(R.string.IPP_info_user) + ": ")
-            .append(usrManager.userName)
-            .append('\n')
-            .append(activity.getString(R.string.IPP_info_package) + ": ")
-            .append(
-                newPkgInfo.packageName,
-                ForegroundColorSpan(ThemeUtil.colorGreen),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-            ).append('\n')
-
         if (oldPkgInfo == null) {
-            sb
+            val newVersionStr = (newPkgInfo.versionName ?: "???") + "(" + newPkgInfo.compatLongVersionCode() + ")"
+            val newSdkStr = newPkgInfo.applicationInfo?.targetSdkVersion?.toString() ?: "???"
+
+            sb.append(activity.getString(R.string.IPP_info_user) + ": ")
+                .append(usrManager.userName)
+                .append('\n')
+                .append(activity.getString(R.string.IPP_info_package) + ": ")
+                .append(newPkgInfo.packageName)
+                .append('\n')
                 .append(activity.getString(R.string.IPP_info_version) + ": ")
-                .append(
-                    "${newPkgInfo.versionName ?: "N/A"}(${newPkgInfo.compatLongVersionCode()})",
-                    ForegroundColorSpan(ThemeUtil.colorGreen),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-                ).append('\n')
+                .append(newVersionStr)
+                .append('\n')
                 .append(activity.getString(R.string.IPP_info_sdk) + ": ")
-                .append(
-                    newPkgInfo.applicationInfo?.targetSdkVersion?.toString() ?: "N/A",
-                    ForegroundColorSpan(ThemeUtil.colorGreen),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-                )
+                .append(newSdkStr)
         } else {
-            sb
-                .append(activity.getString(R.string.IPP_info_version) + ": ")
-                .append(
-                    "${oldPkgInfo.versionName ?: "N/A"}(${oldPkgInfo.compatLongVersionCode()})",
-                    ForegroundColorSpan(ThemeUtil.colorRed),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-                ).append(" ➞ ")
-                .append(
-                    "${newPkgInfo.versionName ?: "N/A"}(${newPkgInfo.compatLongVersionCode()})",
-                    ForegroundColorSpan(ThemeUtil.colorGreen),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-                ).append('\n')
+            val oldVersionStr = "${oldPkgInfo.versionName ?: "???"}(${oldPkgInfo.compatLongVersionCode()})"
+            val newVersionStr = "${newPkgInfo.versionName ?: "???"}(${newPkgInfo.compatLongVersionCode()})"
+            val oldSdkStr = oldPkgInfo.applicationInfo?.targetSdkVersion?.toString() ?: "???"
+            val newSdkStr = newPkgInfo.applicationInfo?.targetSdkVersion?.toString() ?: "???"
+
+            sb.append(activity.getString(R.string.IPP_info_user) + ": ")
+                .append(usrManager.userName)
+                .append('\n')
+                .append(activity.getString(R.string.IPP_info_package) + ": ")
+                .append(newPkgInfo.packageName)
+                .append('\n')
+                .append(activity.getString(R.string.IPP_info_version1) + ": ")
+                .append(oldVersionStr)
+                .append('\n')
+                .append(activity.getString(R.string.IPP_info_version2) + ": ")
+                .append(newVersionStr, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                .append('\n')
                 .append(activity.getString(R.string.IPP_info_sdk) + ": ")
-                .append(
-                    oldPkgInfo.applicationInfo?.targetSdkVersion?.toString() ?: "N/A",
-                    ForegroundColorSpan(ThemeUtil.colorRed),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-                ).append(" ➞ ")
-                .append(
-                    newPkgInfo.applicationInfo?.targetSdkVersion?.toString() ?: "N/A",
-                    ForegroundColorSpan(ThemeUtil.colorGreen),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-                )
+                .append(oldSdkStr)
+                .append(" ➞ ")
+                .append(newSdkStr, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
 
         parent.addView(
@@ -155,37 +148,36 @@ object InstallerHookBaklava {
         val viewModel = activity.get("uninstallViewModel") ?: return
         val repository = viewModel.get("repository") ?: return
         val packageName = repository.get("targetPackageName") as? String ?: return
-        val pkgInfo = activity.packageManager.getPackageInfoOrNull(packageName) ?: return
+        
+        val pkgInfo = try {
+            activity.packageManager.getPackageInfo(packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES)
+        } catch (e: PackageManager.NameNotFoundException) {
+            null
+        }
 
-        val sb = SpannableStringBuilder()
-        sb
-            .append(activity.getString(R.string.IPP_info_package) + ": ")
-            .append(
-                packageName,
-                ForegroundColorSpan(ThemeUtil.colorRed),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-            ).append('\n')
-            .append(activity.getString(R.string.IPP_info_version) + ": ")
-            .append(
-                "${pkgInfo.versionName ?: "N/A"}(${pkgInfo.compatLongVersionCode()})",
-                ForegroundColorSpan(ThemeUtil.colorRed),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-            ).append('\n')
-            .append(activity.getString(R.string.IPP_info_sdk) + ": ")
-            .append(
-                pkgInfo.applicationInfo?.targetSdkVersion?.toString() ?: "N/A",
-                ForegroundColorSpan(ThemeUtil.colorRed),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+        if (pkgInfo != null) {
+            val oldVersionStr = (pkgInfo.versionName ?: "???") + "(" + pkgInfo.compatLongVersionCode() + ")"
+            val oldSdkStr = pkgInfo.applicationInfo?.targetSdkVersion?.toString() ?: "???"
+
+            val sb = SpannableStringBuilder()
+            sb.append(activity.getString(R.string.IPP_info_package) + ": ")
+                .append(packageName)
+                .append('\n')
+                .append(activity.getString(R.string.IPP_info_version) + ": ")
+                .append(oldVersionStr)
+                .append('\n')
+                .append(activity.getString(R.string.IPP_info_sdk) + ": ")
+                .append(oldSdkStr)
+
+            parent.addView(
+                TextView(activity).apply {
+                    tag = TAG_UNINSTALL_DETAILS
+                    setTextIsSelectable(true)
+                    typeface = Typeface.MONOSPACE
+                    text = sb
+                },
             )
-
-        parent.addView(
-            TextView(activity).apply {
-                tag = TAG_UNINSTALL_DETAILS
-                setTextIsSelectable(true)
-                typeface = Typeface.MONOSPACE
-                text = sb
-            },
-        )
+        }
     }
 }
 
