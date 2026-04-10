@@ -9,7 +9,6 @@ import android.os.UserManager
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -29,8 +28,6 @@ object InstallerHookN {
             val spacer: View? = ctx.findViewById(spacerId)
             if (spacer != null) {
                 replaceSpacerWithInfoView(spacer, ctx)
-            } else {
-                Log.e(TAG, "spacer view not found")
             }
         }
     }
@@ -60,40 +57,41 @@ object InstallerHookN {
 
         val sb = SpannableStringBuilder()
         if (oldPkgInfo == null) {
-            val newVersionStr = (newPkgInfo.versionName ?: "N/A") + "(" + newPkgInfo.versionCode + ")"
-            val newSdkStr = newPkgInfo.applicationInfo.targetSdkVersion.toString()
+            val newVersionStr = (newPkgInfo.versionName ?: "???") + "(" + newPkgInfo.versionCode + ")"
+            val newSdkStr = newPkgInfo.applicationInfo!!.targetSdkVersion.toString()
 
             sb.append(activity.getString(R.string.IPP_info_user) + ": ")
                 .append(usrManager.userName)
                 .append('\n')
                 .append(activity.getString(R.string.IPP_info_package) + ": ")
-                .append(pkgName, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                .append(pkgName)
                 .append('\n')
                 .append(activity.getString(R.string.IPP_info_version) + ": ")
-                .append(newVersionStr, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                .append(newVersionStr)
                 .append('\n')
                 .append(activity.getString(R.string.IPP_info_sdk) + ": ")
-                .append(newSdkStr, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                .append(newSdkStr)
 
         } else {
-            val oldVersionStr = (oldPkgInfo.versionName ?: "N/A") + "(" + oldPkgInfo.versionCode + ")"
-            val newVersionStr = (newPkgInfo.versionName ?: "N/A") + "(" + newPkgInfo.versionCode + ")"
-            val oldSdkStr = oldPkgInfo.applicationInfo.targetSdkVersion.toString()
-            val newSdkStr = newPkgInfo.applicationInfo.targetSdkVersion.toString()
+            val oldVersionStr = (oldPkgInfo.versionName ?: "???") + "(" + oldPkgInfo.versionCode + ")"
+            val newVersionStr = (newPkgInfo.versionName ?: "???") + "(" + newPkgInfo.versionCode + ")"
+            val oldSdkStr = oldPkgInfo.applicationInfo!!.targetSdkVersion.toString()
+            val newSdkStr = newPkgInfo.applicationInfo!!.targetSdkVersion.toString()
 
             sb.append(activity.getString(R.string.IPP_info_user) + ": ")
                 .append(usrManager.userName)
                 .append('\n')
                 .append(activity.getString(R.string.IPP_info_package) + ": ")
-                .append(pkgName, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                .append(pkgName)
                 .append('\n')
-                .append(activity.getString(R.string.IPP_info_version) + ": ")
-                .append(oldVersionStr, ForegroundColorSpan(ThemeUtil.colorRed), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                .append(" ➞ ")
+                .append(activity.getString(R.string.IPP_info_version1) + ": ")
+                .append(oldVersionStr)
+                .append('\n')
+                .append(activity.getString(R.string.IPP_info_version2) + ": ")
                 .append(newVersionStr, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 .append('\n')
                 .append(activity.getString(R.string.IPP_info_sdk) + ": ")
-                .append(oldSdkStr, ForegroundColorSpan(ThemeUtil.colorRed), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                .append(oldSdkStr)
                 .append(" ➞ ")
                 .append(newSdkStr, ForegroundColorSpan(ThemeUtil.colorGreen), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }

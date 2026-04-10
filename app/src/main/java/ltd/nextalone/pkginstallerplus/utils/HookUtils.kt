@@ -2,7 +2,6 @@ package ltd.nextalone.pkginstallerplus.utils
 
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.util.Log
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
@@ -22,7 +21,6 @@ internal val String.clazz: Class<*>?
 internal fun Member.hook(callback: XC_MethodHook) = try {
     XposedBridge.hookMethod(this, callback)
 } catch (e: Throwable) {
-    Log.e(TAG, e.message, e)
     null
 }
 
@@ -30,7 +28,6 @@ internal inline fun Member.hookBefore(crossinline hooker: (XC_MethodHook.MethodH
     override fun beforeHookedMethod(param: MethodHookParam?) = try {
         hooker(param!!)
     } catch (e: Throwable) {
-        Log.e(TAG, e.message, e)
         Unit
     }
 })
@@ -39,7 +36,6 @@ internal inline fun Member.hookAfter(crossinline hooker: (XC_MethodHook.MethodHo
     override fun afterHookedMethod(param: MethodHookParam?) = try {
         hooker(param!!)
     } catch (e: Throwable) {
-        Log.e(TAG, e.message, e)
         Unit
     }
 })
